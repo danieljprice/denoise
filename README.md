@@ -1,5 +1,5 @@
 # denoise
-Command-line tool to remove shot noise from astronomical images and cubes
+Command-line tool to remove shot noise from astronomical images and cubes.
 
 ## Usage
 ```
@@ -21,3 +21,6 @@ Options:  --imax=3.4e-2     [intensity value above which no smoothing is applied
           --end=10          [denoise only up to channel 10]
 ```
 The main one is the --beam argument which sets the minimum beam size (in number of pixels). The default is beam=1.0 which gives no smoothing of the image at the maximum intensity.
+
+## About this repo
+Denoise is officially part of splash (github.com/danieljprice/splash). This repository is a standalone version of denoise that is updated with each stable release of splash that affects the relevant source files. Pull requests to this repo will also be incorporated back into the main splash source code.
