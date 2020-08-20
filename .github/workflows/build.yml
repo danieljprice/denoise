@@ -23,7 +23,7 @@ jobs:
       run: sudo apt-get install gfortran
 
     - name: Install cfitsio
-      run: sudo apt-get install cfitsio-dev
+      run: sudo apt-get install libcfitsio-dev
 
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - uses: actions/checkout@v2
