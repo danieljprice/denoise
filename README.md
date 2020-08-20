@@ -28,6 +28,9 @@ Options:  --imax=3.4e-2     [intensity value above which no smoothing is applied
 ```
 The main one is the --beam argument which sets the minimum beam size (in number of pixels). The default is beam=1.0 which gives no smoothing of the image at the maximum intensity.
 
+## Status
+![build](https://github.com/danieljprice/denoise/workflows/build/badge.svg)
+
 ## Installing from source
 To compile denoise from source you will need a Fortran compiler (gfortran)
 and the cfitsio library. Then compile denoise as follows:
