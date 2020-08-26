@@ -28,11 +28,15 @@ jobs:
     
     # Runs a single command using the runners shell
     - name: make release tarball
-      run: cd ..; mv denoise denoise-$version; tar cvf denoise-$version.tar denoise-$version; gzip denoise-$version.tar
+      run: cd ..; dir=denoise-${{ steps.get_version.version }}; tar cvf $dir.tar $dir; gzip $dir.tar
 
     - name: get SHA
       id: shasum
       run: |
         echo ::set-output name=sha::"$(shasum -a 256 ./target/denoise-$version.tar.gz | awk '{printf $1}')"
 
-
+    - name: 'Upload Artifact'
+      uses: actions/upload-artifact@v2
+      with:
+        name: denoise-${{ steps.get_version.version }}
+        path: denoise-${{ steps.get_version.version }}.tar.gz
