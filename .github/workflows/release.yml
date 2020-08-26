@@ -2,41 +2,50 @@
 
 name: release
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+# trigger on git tags starting with the letter v
 on:
   push:
-    branches: [ master ]
+    # Sequence of patterns matched against refs/tags
+    tags:
+    - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - name: checkout code
     - uses: actions/checkout@v2
       with: 
         submodules: recursive
 
-    - name: Get version
-      id: get_version
-      run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
-    
-    # Runs a single command using the runners shell
-    - name: make release tarball
-      run: cd ..; dir=denoise-${{ steps.get_version.version }}; tar cvf $dir.tar $dir; gzip $dir.tar
+    - name: build release tarball
+      run: cd ..; dir=denoise-${{ github.ref }}; mv denoise $dir; tar cvf $dir.tar $dir; gzip $dir.tar
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Denoise ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+        asset_path: ../denoise-${{ github.ref }}.tar.gz
+        asset_name: denoise-${{ github.ref }}.tar.gz
+        asset_content_type: application/gzip
 
     - name: get SHA
       id: shasum
       run: |
         echo ::set-output name=sha::"$(shasum -a 256 ./target/denoise-$version.tar.gz | awk '{printf $1}')"
-
-    - name: 'Upload Artifact'
-      uses: actions/upload-artifact@v2
-      with:
-        name: denoise-${{ steps.get_version.version }}
-        path: denoise-${{ steps.get_version.version }}.tar.gz
