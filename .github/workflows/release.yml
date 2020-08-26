@@ -95,3 +95,15 @@ jobs:
         asset_path: ${{ steps.get_version.outputs.tarfile }}
         asset_name: ${{ steps.get_version.outputs.tarfile }}
         asset_content_type: application/gzip
+
+    - name: Bump personal tap formula
+      uses: mislav/bump-homebrew-formula-action@v1
+      if: "!contains(github.ref, '-')" # skip prereleases
+      env:
+         COMMITTER_TOKEN: ${{ secrets.BREW_TOKEN }}
+         repo: ${{ steps.get_version.outputs.repo }}
+         tarfile: ${{ steps.get_version.outputs.tarfile }}
+      with:
+         formula-name: ${repo}
+         homebrew-tap: danieljprice/all
+         download-url: https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/$tarfile
