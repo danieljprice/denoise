@@ -103,5 +103,5 @@ jobs:
          COMMITTER_TOKEN: ${{ secrets.BREW_TOKEN }}
       with:
          formula-name: ${{ steps.get_version.outputs.repo }}
-         homebrew-tap: danieljprice/all
+         homebrew-tap: danieljprice/homebrew-all
          download-url: https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/${{ steps.get_version.outputs.tarfile }}
