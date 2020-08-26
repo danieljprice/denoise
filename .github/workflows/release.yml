@@ -22,7 +22,7 @@ jobs:
       with: 
         submodules: recursive
 
-   - name: Get version
+    - name: Get version
       id: get_version
       run: echo ::set-output name=version::${GITHUB_REF/refs\/tags\//}
     
