@@ -1,25 +1,78 @@
-# trigger on git tags starting with the letter v
+name: release
+# a general github action to generate a release whenever a version tag is pushed
+# generates and uploads a tarball of the source code
+# in a way that plays nicely with git submodules
+# could be easily adapted to produce binaries for each OS
+# Daniel Price, Aug 2020
 on:
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
     - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
-name: release
-
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  release:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     - name: checkout code
-    - uses: actions/checkout@v2
-      with: 
+      uses: actions/checkout@v2
+      with:
         submodules: recursive
 
-    - name: build release tarball
-      run: cd ..; dir=denoise-${{ github.ref }}; mv denoise $dir; tar cvf $dir.tar $dir; gzip $dir.tar
+    - name: Get version
+      id: get_version
+      env:
+          vernum: ${{ github.ref }}
+          repo: ${{ github.repository }}
+      run: |
+          echo ::set-output name=version::${vernum/refs\/tags\//}
+          echo ::set-output name=repo::`basename ${repo}`
+          echo ::set-output name=tarfile::`basename ${repo}`-${vernum/refs\/tags\//}.tar.gz
+
+#    - name: build tarball (no submodules)
+#      env:
+#          tarfile: ${{ steps.get_version.outputs.tarfile }}
+#          repo: ${{ steps.get_version.outputs.repo }}
+#      run: |
+#          git archive --prefix="${repo}/" HEAD > $tarfile
+#          gzip $tarfile
+
+#    - name: build tarball mac
+#      if: matrix.os == 'macos-latest'
+#      env:
+#          tarfile: ${{ steps.get_version.outputs.tarfile }}
+#          repo: ${{ steps.get_version.outputs.repo }}
+#      run: |
+#          tar cfz /tmp/$tarfile --exclude ".git*" -s "/./${repo}/" .
+
+    - name: build tarball
+      if: matrix.os == 'ubuntu-latest'
+      env:
+          tarfile: ${{ steps.get_version.outputs.tarfile }}
+          repo: ${{ steps.get_version.outputs.repo }}
+      run: |
+          env
+          echo "tarfile is $tarfile, repo is $repo"
+          tar cfz /tmp/$tarfile --exclude ".git*" \
+              --exclude "*.c" --exclude "*.h" \
+              --exclude "*.F90" --exclude "utils/*"  \
+              --exclude "docs/*" --exclude "scripts/*" \
+              --exclude "*H5Part*" --exclude "read_data*" \
+              --transform "s,.,${repo}," .
+
+    - name: check tarball and get SHA
+      env:
+          tarfile: ${{ steps.get_version.outputs.tarfile }}
+      id: shasum
+      run: |
+          mv /tmp/$tarfile .
+          tar tfz $tarfile
+          echo ::set-output name=sha::"$(shasum -a 256 $tarfile | awk '{printf $1}')"
 
     - name: Create Release
       id: create_release
@@ -27,23 +80,18 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Denoise ${{ github.ref }}
+        tag_name: ${{ steps.get_version.outputs.version }}
+        release_name: ${{ steps.get_version.outputs.version }}
         draft: false
         prerelease: false
 
     - name: Upload Release Asset
-      id: upload-release-asset 
+      id: upload-release-asset
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
-        asset_path: ../denoise-${{ github.ref }}.tar.gz
-        asset_name: denoise-${{ github.ref }}.tar.gz
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ steps.get_version.outputs.tarfile }}
+        asset_name: ${{ steps.get_version.outputs.tarfile }}
         asset_content_type: application/gzip
-
-    - name: get SHA
-      id: shasum
-      run: |
-        echo ::set-output name=sha::"$(shasum -a 256 ./target/denoise-$version.tar.gz | awk '{printf $1}')"
