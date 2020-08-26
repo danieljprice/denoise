@@ -28,7 +28,7 @@ jobs:
     
     # Runs a single command using the runners shell
     - name: make release tarball
-      run: cd ..; mv denoise denoise-$version; tar cvf denoise-$version.tar; gzip denoise-$version.tar
+      run: cd ..; mv denoise denoise-$version; tar cvf denoise-$version.tar denoise-$version; gzip denoise-$version.tar
 
     - name: get SHA
       id: shasum
