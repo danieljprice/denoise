@@ -101,9 +101,7 @@ jobs:
       if: "!contains(github.ref, '-')" # skip prereleases
       env:
          COMMITTER_TOKEN: ${{ secrets.BREW_TOKEN }}
-         repo: ${{ steps.get_version.outputs.repo }}
-         tarfile: ${{ steps.get_version.outputs.tarfile }}
       with:
-         formula-name: ${repo}
+         formula-name: ${{ steps.get_version.outputs.repo }}
          homebrew-tap: danieljprice/all
-         download-url: https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/$tarfile
+         download-url: https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.version }}/${{ steps.get_version.outputs.tarfile }}
