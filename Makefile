@@ -10,7 +10,7 @@
 .PHONY: denoise splash install docs tests src bin
 denoise:
 	@cd splash/build; ${MAKE} denoise DOUBLEPRECISION=no 
-	@ln -s ./splash/bin/denoise
+	@ln -sf ./splash/bin/denoise
 
 splash:
 	@cd splash/build; ${MAKE} ${MAKECMDGOALS}
