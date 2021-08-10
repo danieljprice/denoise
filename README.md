@@ -59,3 +59,9 @@ HD97048 with ALMA (mm/radio image), from [Pinte et al. (2019)](https://ui.adsabs
 
 ## About this repo
 Denoise is officially part of splash (https://github.com/danieljprice/splash). This repository is a standalone version of denoise that is updated with each stable release of splash that affects the relevant source files. Pull requests to this repo will also be incorporated back into the main splash source code.
+
+## Updating the enclosed copy of splash source files to the latest
+To update the included `submodule' of the splash source code in the denoise repository, use:
+```
+git submodule update --remote
+```
